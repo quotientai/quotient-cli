@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re-)build, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: darwin-arm64
+            os: macos-latest
+            bun_target: bun-darwin-arm64
+            ext: ""
+          - target: darwin-x64
+            os: macos-13
+            bun_target: bun-darwin-x64
+            ext: ""
+          - target: linux-x64
+            os: ubuntu-latest
+            bun_target: bun-linux-x64
+            ext: ""
+          - target: linux-arm64
+            os: ubuntu-latest
+            bun_target: bun-linux-arm64
+            ext: ""
+          - target: windows-x64
+            os: windows-latest
+            bun_target: bun-windows-x64
+            ext: ".exe"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Compile
+        shell: bash
+        run: |
+          bun build --compile --minify --sourcemap \
+            --target=${{ matrix.bun_target }} \
+            ./src/index.ts \
+            --outfile qt${{ matrix.ext }}
+      - name: Package (unix)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          [ -z "$VERSION" ] && VERSION="${{ github.event.inputs.tag }}"
+          VERSION="${VERSION#v}"
+          tar -czf "qt-${VERSION}-${{ matrix.target }}.tar.gz" qt README.md LICENSE
+      - name: Package (windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $version = "${env:GITHUB_REF_NAME}".TrimStart('v')
+          if (-not $version) { $version = "${{ github.event.inputs.tag }}".TrimStart('v') }
+          Compress-Archive -Path qt.exe, README.md, LICENSE -DestinationPath "qt-$version-${{ matrix.target }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qt-${{ matrix.target }}
+          path: |
+            qt-*.tar.gz
+            qt-*.zip
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Determine pre-release flag
+        id: prerelease
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          [ -z "$TAG" ] && TAG="${{ github.event.inputs.tag }}"
+          if [[ "$TAG" == *-* ]]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: artifacts/*
+          generate_release_notes: true
+          prerelease: ${{ steps.prerelease.outputs.value }}
+          token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
