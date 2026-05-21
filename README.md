@@ -11,16 +11,16 @@ Thin, type-safe wrapper around the [`@quotientjs/server`](https://www.npmjs.com/
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/quotient/cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/quotientai/quotient-cli/main/install.sh | bash
 ```
 
 Pinned version:
 
 ```bash
-VERSION=v0.1.0 curl -fsSL https://raw.githubusercontent.com/quotient/cli/main/install.sh | bash
+VERSION=v0.1.0 curl -fsSL https://raw.githubusercontent.com/quotientai/quotient-cli/main/install.sh | bash
 ```
 
-Or grab a binary from the [releases page](https://github.com/quotient/cli/releases) directly.
+Or grab a binary from the [releases page](https://github.com/quotientai/quotient-cli/releases) directly.
 
 ## Authenticate
 

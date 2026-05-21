@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Installer for the Quotient CLI (`qt`).
-# Usage: curl -fsSL https://raw.githubusercontent.com/quotient/cli/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/quotientai/quotient-cli/main/install.sh | bash
 #   INSTALL_DIR=~/.local/bin VERSION=v0.1.0 ./install.sh
 
 set -euo pipefail
 
-REPO="${QUOTIENT_CLI_REPO:-quotient/cli}"
+REPO="${QUOTIENT_CLI_REPO:-quotientai/quotient-cli}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
