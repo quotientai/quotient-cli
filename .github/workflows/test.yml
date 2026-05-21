@@ -19,7 +19,7 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
       - name: Test
-        run: bun test --passWithNoTests
+        run: bun test
       - name: Build (compile)
         run: bun run build
       - name: Smoke test

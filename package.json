@@ -20,8 +20,8 @@
     "dev": "bun run src/index.ts",
     "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile dist/qt",
     "typecheck": "bun x tsc --noEmit",
-    "lint": "bun x biome check src",
-    "format": "bun x biome format --write src",
+    "lint": "bun x biome check src test",
+    "format": "bun x biome format --write src test",
     "test": "bun test"
   },
   "dependencies": {
